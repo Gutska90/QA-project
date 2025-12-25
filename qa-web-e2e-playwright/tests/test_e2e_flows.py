@@ -11,12 +11,20 @@ from pages.checkout_page import CheckoutPage
 @pytest.mark.smoke
 @pytest.mark.login
 def test_successful_login(page, base_url):
-    """Test successful login with valid credentials."""
+    """
+    Test successful login with valid credentials.
+    
+    Steps:
+    1. Navigate to login page
+    2. Enter valid credentials (standard_user / secret_sauce)
+    3. Submit login form
+    4. Verify redirect to inventory page
+    """
     login_page = LoginPage(page)
     login_page.navigate(base_url)
     login_page.login("standard_user", "secret_sauce")
     
-    # Verify redirect to inventory page
+    # Verify redirect to inventory page after successful login
     inventory_page = InventoryPage(page)
     assert inventory_page.is_loaded(), "Inventory page should be loaded after successful login"
 
@@ -38,20 +46,29 @@ def test_invalid_login_shows_error(page, base_url):
 @pytest.mark.smoke
 @pytest.mark.cart
 def test_add_item_to_cart_and_verify_count(page, base_url):
-    """Test adding an item to cart and verifying the cart count badge."""
-    # Login first
+    """
+    Test adding an item to cart and verifying the cart count badge updates.
+    
+    Steps:
+    1. Login to application
+    2. Navigate to inventory page
+    3. Add first item to cart
+    4. Verify cart badge count increases by 1
+    """
+    # Login first to access inventory
     login_page = LoginPage(page)
     login_page.navigate(base_url)
     login_page.login("standard_user", "secret_sauce")
     
-    # Add item to cart
+    # Navigate to inventory and add item to cart
     inventory_page = InventoryPage(page)
     assert inventory_page.is_loaded(), "Inventory page should be loaded"
     
+    # Get initial cart count before adding item
     initial_count = inventory_page.get_cart_count()
     inventory_page.add_item_to_cart(index=0)
     
-    # Verify cart count increased
+    # Verify cart count badge increased by 1
     new_count = inventory_page.get_cart_count()
     assert new_count == initial_count + 1, \
         f"Cart count should increase from {initial_count} to {initial_count + 1}, got {new_count}"

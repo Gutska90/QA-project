@@ -50,21 +50,37 @@ def base_url() -> str:
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Hook to capture screenshots on test failure."""
+    """
+    Pytest hook to capture screenshots automatically on test failure.
+    
+    This hook runs after each test and captures a full-page screenshot
+    if the test fails, saving it to reports/screenshots/ directory.
+    
+    Args:
+        item: Test item object
+        call: Test call object containing execution information
+    """
     outcome = yield
     rep = outcome.get_result()
     
+    # Only capture screenshot on test failure during the call phase
     if rep.when == "call" and rep.failed:
-        # Get the page fixture if available
+        # Check if page fixture is available in the test
         if "page" in item.funcargs:
             page = item.funcargs["page"]
             try:
                 import os
+                # Create screenshots directory if it doesn't exist
                 screenshot_dir = "reports/screenshots"
                 os.makedirs(screenshot_dir, exist_ok=True)
+                
+                # Generate unique screenshot filename
                 screenshot_path = f"{screenshot_dir}/{item.name}_{rep.when}.png"
+                
+                # Capture full-page screenshot
                 page.screenshot(path=screenshot_path, full_page=True)
-                print(f"\nScreenshot saved: {screenshot_path}")
+                print(f"\n[SCREENSHOT] Saved: {screenshot_path}")
             except Exception as e:
-                print(f"Failed to capture screenshot: {e}")
+                # Log error but don't fail the test report generation
+                print(f"[WARNING] Failed to capture screenshot: {e}")
 

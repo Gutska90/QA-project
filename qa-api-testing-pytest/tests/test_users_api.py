@@ -8,19 +8,27 @@ from utils.api_client import APIClient
 @pytest.mark.smoke
 @pytest.mark.get
 def test_get_list_users_returns_200_and_schema(api_client, base_url, timeout):
-    """Test GET list users returns 200 and validates schema expectations."""
+    """
+    Test GET /users endpoint returns 200 and validates response schema.
+    
+    This test verifies:
+    - Status code is 200 (OK)
+    - Response is a JSON array
+    - Array contains at least one user
+    - First user has required fields with correct data types
+    """
     client = APIClient(base_url, api_client)
     response = client.get("users", timeout=timeout)
     
-    # Verify status code
+    # Verify HTTP status code
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     
-    # Verify response is JSON array
+    # Verify response is JSON array (JSONPlaceholder returns arrays directly)
     response_data = response.json()
     assert isinstance(response_data, list), "Response should be a list"
     assert len(response_data) > 0, "Response should contain at least one user"
     
-    # Validate first user schema
+    # Validate first user schema (check required fields and types)
     first_user = response_data[0]
     assert "id" in first_user, "User should contain 'id' field"
     assert isinstance(first_user["id"], int), "User 'id' should be an integer"
@@ -60,10 +68,17 @@ def test_get_single_user_returns_expected_id_and_fields(api_client, base_url, ti
 @pytest.mark.smoke
 @pytest.mark.post
 def test_post_create_user_returns_201_and_created_object(api_client, base_url, timeout):
-    """Test POST create user returns 201 and validates created object fields."""
+    """
+    Test POST /users endpoint creates a new user and returns 201 with created object.
+    
+    This test verifies:
+    - Status code is 201 (Created)
+    - Response contains the created user with auto-generated ID
+    - All submitted fields are returned correctly
+    """
     client = APIClient(base_url, api_client)
     
-    # Test data
+    # Test data for new user
     new_user = {
         "name": "John Doe",
         "username": "johndoe",
@@ -72,7 +87,7 @@ def test_post_create_user_returns_201_and_created_object(api_client, base_url, t
     
     response = client.post("users", json=new_user, timeout=timeout)
     
-    # Verify status code
+    # Verify HTTP status code (201 = Created)
     assert response.status_code == 201, f"Expected 201, got {response.status_code}"
     
     # Verify response structure
@@ -82,6 +97,7 @@ def test_post_create_user_returns_201_and_created_object(api_client, base_url, t
     assert "id" in response_data, "Created user should contain 'id' field"
     assert isinstance(response_data["id"], int), "ID should be an integer"
     
+    # Verify submitted data is returned correctly
     assert "name" in response_data, "Created user should contain 'name' field"
     assert response_data["name"] == new_user["name"], \
         f"Name should match input: {new_user['name']}"
@@ -93,10 +109,17 @@ def test_post_create_user_returns_201_and_created_object(api_client, base_url, t
 
 @pytest.mark.put
 def test_put_update_user_returns_200_and_updated_fields(api_client, base_url, timeout):
-    """Test PUT update user returns 200 and validates updated fields."""
+    """
+    Test PUT /users/{id} endpoint updates a user and returns 200 with updated object.
+    
+    This test verifies:
+    - Status code is 200 (OK)
+    - Response contains the updated user data
+    - All updated fields are returned correctly
+    """
     client = APIClient(base_url, api_client)
     
-    # Test data for update
+    # Test data for updating user
     user_id = 1
     updated_user = {
         "name": "Jane Smith",
@@ -106,13 +129,13 @@ def test_put_update_user_returns_200_and_updated_fields(api_client, base_url, ti
     
     response = client.put(f"users/{user_id}", json=updated_user, timeout=timeout)
     
-    # Verify status code
+    # Verify HTTP status code (200 = OK)
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     
     # Verify response structure
     response_data = response.json()
     
-    # Verify updated fields
+    # Verify updated fields are returned correctly
     assert "name" in response_data, "Updated user should contain 'name' field"
     assert response_data["name"] == updated_user["name"], \
         f"Name should match update: {updated_user['name']}"
@@ -124,13 +147,19 @@ def test_put_update_user_returns_200_and_updated_fields(api_client, base_url, ti
 
 @pytest.mark.negative
 def test_get_non_existing_user_returns_404(api_client, base_url, timeout):
-    """Test GET non-existing user returns 404."""
+    """
+    Test GET /users/{id} endpoint returns 404 for non-existing user ID.
+    
+    This negative test verifies:
+    - Status code is 404 (Not Found) for non-existing resource
+    - API properly handles invalid resource requests
+    """
     client = APIClient(base_url, api_client)
     
-    # Use a non-existing user ID
+    # Use a non-existing user ID (JSONPlaceholder has users 1-10)
     non_existing_id = 999
     response = client.get(f"users/{non_existing_id}", timeout=timeout)
     
-    # Verify status code (JSONPlaceholder returns 404 for non-existing resources)
+    # Verify HTTP status code (404 = Not Found)
     assert response.status_code == 404, \
         f"Expected 404 for non-existing user, got {response.status_code}"

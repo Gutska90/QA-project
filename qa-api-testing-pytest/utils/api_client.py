@@ -85,14 +85,18 @@ class APIClient:
 
 def validate_user_schema(data: Dict[str, Any], require_id: bool = True) -> None:
     """
-    Validate user object schema.
+    Validate user object schema for JSONPlaceholder API.
+    
+    This function checks that the user object contains required fields
+    with correct data types. Note: This is specific to JSONPlaceholder
+    API structure (name, username, email fields).
     
     Args:
-        data: User data dictionary
-        require_id: Whether ID is required (default: True)
+        data: User data dictionary to validate
+        require_id: Whether ID field is required (default: True)
         
     Raises:
-        AssertionError: If schema validation fails
+        AssertionError: If schema validation fails (missing fields or wrong types)
     """
     if require_id:
         assert "id" in data, "User data should contain 'id' field"
@@ -101,20 +105,25 @@ def validate_user_schema(data: Dict[str, Any], require_id: bool = True) -> None:
     assert "email" in data, "User data should contain 'email' field"
     assert isinstance(data["email"], str), "User 'email' should be a string"
     
-    assert "first_name" in data or "firstName" in data, \
-        "User data should contain 'first_name' or 'firstName' field"
+    assert "name" in data, "User data should contain 'name' field"
+    assert isinstance(data["name"], str), "User 'name' should be a string"
     
-    assert "last_name" in data or "lastName" in data, \
-        "User data should contain 'last_name' or 'lastName' field"
+    assert "username" in data, "User data should contain 'username' field"
+    assert isinstance(data["username"], str), "User 'username' should be a string"
 
 
 def validate_list_response(response_data: Dict[str, Any], data_key: str = "data") -> None:
     """
-    Validate list response schema.
+    Validate list response schema for paginated APIs.
+    
+    This function validates that the response contains a list of items
+    and optional pagination metadata. Note: JSONPlaceholder returns
+    arrays directly, but this function supports wrapped responses too.
     
     Args:
-        response_data: Response JSON data
+        response_data: Response JSON data dictionary
         data_key: Key containing the list data (default: "data")
+                  For JSONPlaceholder, pass the array directly
         
     Raises:
         AssertionError: If schema validation fails
@@ -122,6 +131,7 @@ def validate_list_response(response_data: Dict[str, Any], data_key: str = "data"
     assert data_key in response_data, f"Response should contain '{data_key}' key"
     assert isinstance(response_data[data_key], list), f"'{data_key}' should be a list"
     
+    # Optional pagination fields (not used by JSONPlaceholder but included for flexibility)
     if "page" in response_data:
         assert isinstance(response_data["page"], int), "'page' should be an integer"
     
